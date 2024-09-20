@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UGU-Eats Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: #A2466C;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: black;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .content p {
+            font-size: 12pt;
+            text-align: center;
+        }
+
+        .content button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 14pt;
+            background-color: #A2466C;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .content button:hover {
+            opacity: 0.9;
+        }
+
+        .trial-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .trial-buttons button {
+            width: 200px;
+            padding: 10px;
+            font-size: 14pt;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+
+        .error-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>UGU-Eats</h1>
+        <nav>
+            <a>Hem</a>
+            <a>Meny</a>
+            <a>Boka bord</a>
+            <a>Kontakt</a>
+        </nav>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content" id="main-content">
+        <h2>Beställa mat i restaurangappen UGU-Eats</h2>
+        <p>Din uppgift är att så snabbt som möjligt beställa rätt mat genom att klicka dig fram bland alternativen.<br>Se till att du har 10 minuter ostörd tid på dig. Tryck på startknappen för att börja!</p>
+        <button onclick="startExperiment()">Starta</button>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        © 2024 UGU-Mat. Göteborgs universitet.
+    </footer>
+
+    <script>
+        let trialNumber = 1;
+        let startTime, endTime;
+        let trialData = [];
+
+        // Start Experiment
+        function startExperiment() {
+            document.getElementById('main-content').innerHTML = `
+                <h2>Beställ en <strong>stor makrillburgare</strong> så fort som möjligt.</h2>
+                <button onclick="startTrial()">Starta</button>
+            `;
+        }
+
+        // Start the trial
+        function startTrial() {
+            startTime = new Date(); // Start the timer
+            showTrialPage(1);
+        }
+
+        // Display the trial page
+        function showTrialPage(page) {
+            let trialPages = [
+                { text: "Beställ mat", buttons: ["Beställ mat", "Boka bord", "Din varukorg", "Om GU-mat"], correct: 0 },
+                { text: "Huvudrätt", buttons: ["Huvudrätt", "Efterrätt", "Dryck", "Tillbaka"], correct: 0 },
+                { text: "Fisk", buttons: ["Vegetariskt", "Kött", "Fisk", "Tillbaka"], correct: 2 },
+                { text: "Burgare", buttons: ["Burgare", "Mackor", "Sallader", "Tillbaka"], correct: 0 },
+                { text: "Makrill", buttons: ["Makrill", "Torsk", "Sill", "Tillbaka"], correct: 0 },
+                { text: "Stor", buttons: ["Stor", "Mellan", "Liten", "Tillbaka"], correct: 0 },
+                { text: "Beställ", buttons: ["Beställ", "Ångra", "Lägg till", "Tillbaka"], correct: 0 },
+            ];
+
+            if (page <= trialPages.length) {
+                let trial = trialPages[page - 1];
+                let buttonHtml = trial.buttons.map((btn, index) => {
+                    return `<button onclick="checkAnswer(${index}, ${trial.correct}, ${page})">${btn}</button>`;
+                }).join("");
+
+                document.getElementById('main-content').innerHTML = `
+                    <h2>Beställ en <strong>stor makrillburgare</strong></h2>
+                    <div class="trial-buttons">${buttonHtml}</div>
+                `;
+            } else {
+                endTrial();
+            }
+        }
+
+        // Check if the correct button was clicked
+        function checkAnswer(selected, correct, page) {
+            if (selected === correct) {
+                showTrialPage(page + 1);
+            } else {
+                showErrorPage(page);
+            }
+        }
+
+        // Show error page if wrong answer is clicked
+        function showErrorPage(page) {
+            document.getElementById('main-content').innerHTML = `
+                <div class="error-page">
+                    <p>Du måste välja "${page === 1 ? 'Beställ mat' : 'Rätt alternativ'}"</p>
+                    <button onclick="showTrialPage(${page})">Tillbaka</button>
+                </div>
+            `;
+        }
+
+        // End the trial and display the results
+        function endTrial() {
+            endTime = new Date();
+            let timeTaken = (endTime - startTime) / 1000; // Time in seconds
+            trialData.push(timeTaken);
+
+            if (trialNumber < 4) {
+                document.getElementById('main-content').innerHTML = `
+                    <p>Du klarade det på ${timeTaken.toFixed(2)} sekunder.</p>
+                    <p>Vi vill gärna testa dig igen!</p>
+                    <button onclick="nextTrial()">Starta</button>
+                `;
+            } else {
+                document.getElementById('main-content').innerHTML = `
+                    <p>Du klarade det på ${timeTaken.toFixed(2)} sekunder.</p>
+                    <p>Experimentet är över. Tack för ditt deltagande!</p>
+                `;
+            }
+        }
+
+        // Start next trial
+        function nextTrial() {
+            trialNumber++;
+            startTrial();
+        }
+    </script>
+
+</body>
+</html>
